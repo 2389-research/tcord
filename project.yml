@@ -28,6 +28,13 @@ targets:
       base:
         INFOPLIST_FILE: VoiceNotes/Info.plist
         PRODUCT_BUNDLE_IDENTIFIER: com.voicenotes.app
+        CODE_SIGN_ENTITLEMENTS: VoiceNotes/VoiceNotes.entitlements
+    entitlements:
+      path: VoiceNotes/VoiceNotes.entitlements
+      properties:
+        com.apple.developer.applesignin:
+          - Default
+        com.apple.developer.watchkit: true
     dependencies:
       - target: VoiceNotes Watch App
         embed: true

@@ -27,6 +27,10 @@
     </dict>
     <key>UILaunchScreen</key>
     <dict/>
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+    </array>
     <key>UIRequiredDeviceCapabilities</key>
     <array>
         <string>armv7</string>
