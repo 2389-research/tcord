@@ -27,5 +27,7 @@
     <true/>
     <key>WKCompanionAppBundleIdentifier</key>
     <string>com.voicenotes.app</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>VoiceNotes needs microphone access to record voice memos.</string>
 </dict>
 </plist>
