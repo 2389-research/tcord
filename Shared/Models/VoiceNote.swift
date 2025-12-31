@@ -42,7 +42,7 @@ struct VoiceNoteMetadata: Codable, Sendable, Identifiable {
 
     /// ISO8601 formatted creation date for Firebase
     var createdAtISO: String {
-        ISO8601DateFormatter().string(from: createdAt)
+        createdAt.formatted(.iso8601)
     }
 }
 
