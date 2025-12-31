@@ -136,8 +136,10 @@ extension PhoneSessionManager: WCSessionDelegate {
             // Move new file
             try FileManager.default.moveItem(at: file.fileURL, to: destinationURL)
 
-            // Notify delegate
-            delegate?.didReceiveFile(at: destinationURL, metadata: metadata)
+            // Notify delegate on MainActor
+            Task { @MainActor in
+                self.delegate?.didReceiveFile(at: destinationURL, metadata: metadata)
+            }
         } catch {
             print("Failed to move received file: \(error)")
         }
