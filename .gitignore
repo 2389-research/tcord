@@ -1,0 +1,29 @@
+# Xcode
+*.xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+build/
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Generated Xcode project (regenerate with xcodegen)
+*.xcodeproj
+
+# Dependencies
+Pods/
+Carthage/Build/
+
+# Firebase
+GoogleService-Info.plist
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# OS
+.DS_Store
+
+# Secrets
+*.pem
+*.p8
