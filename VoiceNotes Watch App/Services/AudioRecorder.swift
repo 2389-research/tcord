@@ -161,6 +161,7 @@ final class AudioRecorder: ObservableObject {
         // Reset state
         self.audioRecorder = nil
         self.currentNoteId = nil
+        self.currentRecordingURL = nil
         self.recordingStartTime = nil
         self.isRecording = false
         self.recordingDuration = 0
@@ -207,8 +208,8 @@ final class AudioRecorder: ObservableObject {
 
     private func startDurationTimer() {
         durationTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] _ in
-            guard let self = self, let startTime = self.recordingStartTime else { return }
-            Task { @MainActor in
+            Task { @MainActor [weak self] in
+                guard let self = self, let startTime = self.recordingStartTime else { return }
                 self.recordingDuration = Date().timeIntervalSince(startTime)
             }
         }
