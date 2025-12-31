@@ -5,7 +5,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @StateObject private var audioRecorder = AudioRecorder()
+    @StateObject private var audioRecorder: AudioRecorder
     @StateObject private var queueManager: NotesQueueManager
 
     @State private var showError = false

@@ -15,6 +15,8 @@ struct NotesListView: View {
     @State private var selectedNote: FirestoreNote?
     @State private var isPlaying = false
     @State private var audioPlayer: AVPlayer?
+    @State private var playbackObserver: NSObjectProtocol?
+    @State private var notesListener: ListenerRegistration?
 
     var body: some View {
         NavigationStack {
@@ -46,6 +48,14 @@ struct NotesListView: View {
             }
             .onAppear {
                 loadNotes()
+            }
+            .onDisappear {
+                // Clean up listeners
+                notesListener?.remove()
+                if let observer = playbackObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
+                audioPlayer?.pause()
             }
         }
     }
@@ -153,7 +163,7 @@ struct NotesListView: View {
             return
         }
 
-        Firestore.firestore()
+        notesListener = Firestore.firestore()
             .collection("users").document(uid)
             .collection("notes")
             .order(by: "createdAt", descending: true)
@@ -171,9 +181,19 @@ struct NotesListView: View {
     private func playNote(_ note: FirestoreNote) {
         guard let uid = authService.uid else { return }
 
+        guard let noteUUID = UUID(uuidString: note.noteId) else {
+            print("Invalid note ID format: \(note.noteId)")
+            return
+        }
+
         Task {
             do {
-                let url = try await UploadService().downloadURL(for: UUID(uuidString: note.noteId)!, uid: uid)
+                let url = try await UploadService().downloadURL(for: noteUUID, uid: uid)
+
+                // Clean up previous observer
+                if let observer = playbackObserver {
+                    NotificationCenter.default.removeObserver(observer)
+                }
 
                 audioPlayer?.pause()
                 audioPlayer = AVPlayer(url: url)
@@ -183,7 +203,7 @@ struct NotesListView: View {
                 isPlaying = true
 
                 // Observe when playback ends
-                NotificationCenter.default.addObserver(
+                playbackObserver = NotificationCenter.default.addObserver(
                     forName: .AVPlayerItemDidPlayToEndTime,
                     object: audioPlayer?.currentItem,
                     queue: .main

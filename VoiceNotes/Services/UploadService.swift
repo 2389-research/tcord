@@ -45,12 +45,22 @@ final class UploadService {
             }
         }
 
-        // Wait for completion
+        // Wait for completion with safe continuation handling
         _ = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<StorageMetadata, Error>) in
+            var hasResumed = false
+
             uploadTask.observe(.success) { snapshot in
-                continuation.resume(returning: snapshot.metadata!)
+                guard !hasResumed else { return }
+                hasResumed = true
+                if let metadata = snapshot.metadata {
+                    continuation.resume(returning: metadata)
+                } else {
+                    continuation.resume(throwing: UploadError.uploadFailed)
+                }
             }
             uploadTask.observe(.failure) { snapshot in
+                guard !hasResumed else { return }
+                hasResumed = true
                 continuation.resume(throwing: snapshot.error ?? UploadError.uploadFailed)
             }
         }

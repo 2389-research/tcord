@@ -5,7 +5,7 @@ import SwiftUI
 
 struct ContentView: View {
 
-    @StateObject private var authService = AuthService()
+    @StateObject private var authService: AuthService
     @StateObject private var uploadQueue: UploadQueueManager
 
     init() {
