@@ -89,6 +89,11 @@ final class NotesQueueManager: ObservableObject {
 
         guard FileManager.default.fileExists(atPath: audioURL.path) else {
             print("Audio file not found for note \(note.id)")
+            if let index = notes.firstIndex(where: { $0.id == note.id }) {
+                notes[index].status = .failed
+                notes[index].errorMessage = "Audio file not found"
+                saveNotes()
+            }
             return
         }
 
