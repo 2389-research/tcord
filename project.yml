@@ -23,6 +23,7 @@ targets:
     platform: iOS
     sources:
       - path: VoiceNotes
+      - path: Shared
     settings:
       base:
         INFOPLIST_FILE: VoiceNotes/Info.plist
@@ -50,6 +51,7 @@ targets:
     platform: watchOS
     sources:
       - path: "VoiceNotes Watch App"
+      - path: Shared
     settings:
       base:
         INFOPLIST_FILE: "VoiceNotes Watch App/Info.plist"
