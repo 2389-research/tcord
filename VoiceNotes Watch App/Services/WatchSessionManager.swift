@@ -56,7 +56,10 @@ final class WatchSessionManager: NSObject, ObservableObject {
         ]
 
         let transfer = session.transferFile(url, metadata: metadataDict)
-        pendingTransfers[metadata.id] = transfer
+
+        Task { @MainActor in
+            self.pendingTransfers[metadata.id] = transfer
+        }
 
         return true
     }
