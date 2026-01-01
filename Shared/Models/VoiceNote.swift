@@ -14,6 +14,14 @@ enum NoteStatus: String, Codable, Sendable {
     case failed         // Upload failed (retryable)
 }
 
+/// Status of transcription processing
+enum TranscriptionStatus: String, Codable, Sendable {
+    case pending        // Not yet started
+    case processing     // In progress
+    case completed      // Successfully transcribed
+    case failed         // Transcription failed
+}
+
 /// Metadata for a voice note recording
 struct VoiceNoteMetadata: Codable, Sendable, Identifiable {
     let id: UUID
@@ -21,6 +29,11 @@ struct VoiceNoteMetadata: Codable, Sendable, Identifiable {
     var durationMs: Int
     var status: NoteStatus
     var errorMessage: String?
+
+    // Transcription
+    var transcription: String?
+    var transcriptionStatus: TranscriptionStatus
+    var transcriptionLanguage: String?
 
     // Optional device info
     var watchModel: String?
@@ -32,12 +45,14 @@ struct VoiceNoteMetadata: Codable, Sendable, Identifiable {
         id: UUID = UUID(),
         createdAt: Date = Date(),
         durationMs: Int = 0,
-        status: NoteStatus = .recording
+        status: NoteStatus = .recording,
+        transcriptionStatus: TranscriptionStatus = .pending
     ) {
         self.id = id
         self.createdAt = createdAt
         self.durationMs = durationMs
         self.status = status
+        self.transcriptionStatus = transcriptionStatus
     }
 
     /// ISO8601 formatted creation date for Firebase

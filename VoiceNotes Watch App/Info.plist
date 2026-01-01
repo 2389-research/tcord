@@ -29,5 +29,7 @@
     <string>com.voicenotes.app</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>VoiceNotes needs microphone access to record voice memos.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>VoiceNotes uses speech recognition to transcribe your voice memos into text.</string>
 </dict>
 </plist>

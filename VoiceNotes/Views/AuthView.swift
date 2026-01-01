@@ -8,6 +8,7 @@ struct AuthView: View {
 
     @EnvironmentObject var authService: AuthService
     @State private var showError = false
+    @State private var errorMessage = ""
 
     var body: some View {
         VStack(spacing: 32) {
@@ -40,10 +41,12 @@ struct AuthView: View {
                             do {
                                 try await authService.signInWithApple()
                             } catch {
+                                errorMessage = describeAuthError(error)
                                 showError = true
                             }
                         }
-                    case .failure:
+                    case .failure(let error):
+                        errorMessage = describeAuthError(error)
                         showError = true
                     }
                 }
@@ -55,7 +58,12 @@ struct AuthView: View {
                 #if DEBUG
                 Button("Continue as Guest") {
                     Task {
-                        try? await authService.signInAnonymously()
+                        do {
+                            try await authService.signInAnonymously()
+                        } catch {
+                            errorMessage = describeAuthError(error)
+                            showError = true
+                        }
                     }
                 }
                 .foregroundColor(.secondary)
@@ -67,7 +75,43 @@ struct AuthView: View {
         .alert("Sign In Failed", isPresented: $showError) {
             Button("OK") { }
         } message: {
-            Text("Please try again.")
+            Text(errorMessage)
         }
+    }
+
+    private func describeAuthError(_ error: Error) -> String {
+        let nsError = error as NSError
+
+        // Handle ASAuthorizationError (Sign in with Apple cancellation/failures)
+        if nsError.domain == ASAuthorizationError.errorDomain {
+            switch ASAuthorizationError.Code(rawValue: nsError.code) {
+            case .canceled:
+                return "Sign in was cancelled."
+            case .failed:
+                return "Sign in failed. Please try again."
+            case .invalidResponse:
+                return "Invalid response from Apple. Please try again."
+            case .notHandled:
+                return "Sign in request was not handled."
+            case .unknown:
+                return "An unknown error occurred. Please try again."
+            default:
+                return "Sign in failed. Please try again."
+            }
+        }
+
+        // Handle Firebase Auth errors
+        if nsError.domain == "FIRAuthErrorDomain" {
+            switch nsError.code {
+            case 17020: // Network error
+                return "Network error. Please check your connection."
+            case 17999: // Internal error
+                return "Authentication service error. Please try again later."
+            default:
+                return error.localizedDescription
+            }
+        }
+
+        return error.localizedDescription
     }
 }

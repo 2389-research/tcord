@@ -10,6 +10,9 @@ struct ContentView: View {
 
     @State private var showError = false
     @State private var errorMessage = ""
+    @State private var isTranscribing = false
+
+    private let transcriptionService = TranscriptionService()
 
     init() {
         let recorder = AudioRecorder()
@@ -49,6 +52,13 @@ struct ContentView: View {
                 Text(formatDuration(audioRecorder.recordingDuration))
                     .font(.title2)
                     .monospacedDigit()
+            }
+        } else if isTranscribing {
+            VStack {
+                ProgressView()
+                Text("Transcribing...")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         } else {
             Text("Tap to Record")
@@ -98,7 +108,24 @@ struct ContentView: View {
         Task {
             if audioRecorder.isRecording {
                 do {
-                    let metadata = try await audioRecorder.stopRecording()
+                    var metadata = try await audioRecorder.stopRecording()
+                    let audioURL = audioRecorder.audioFileURL(for: metadata.id)
+
+                    // Transcribe the recording
+                    isTranscribing = true
+                    defer { isTranscribing = false }
+
+                    do {
+                        let result = try await transcriptionService.transcribe(audioURL: audioURL)
+                        metadata.transcription = result.text
+                        metadata.transcriptionStatus = .completed
+                        metadata.transcriptionLanguage = result.language
+                    } catch {
+                        // Transcription failed - still enqueue, phone can retry
+                        metadata.transcriptionStatus = .failed
+                        print("Transcription failed: \(error)")
+                    }
+
                     queueManager.enqueue(metadata)
                 } catch {
                     errorMessage = error.localizedDescription
@@ -132,10 +159,10 @@ extension NotesQueueManager: WatchSessionDelegate {
     }
 
     nonisolated func sessionReachabilityDidChange(_ reachable: Bool) {
-        // Retry queued notes when reachable
+        // Retry all pending notes when reachable
         if reachable {
             Task { @MainActor in
-                self.retryFailed()
+                self.retryPending()
             }
         }
     }

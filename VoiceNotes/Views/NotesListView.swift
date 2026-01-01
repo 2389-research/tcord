@@ -1,9 +1,8 @@
-// ABOUTME: Displays list of voice notes with playback and status.
-// ABOUTME: Shows upload status badges and provides retry for failed uploads.
+// ABOUTME: Displays list of voice notes with transcription previews.
+// ABOUTME: Shows upload status badges and provides swipe-to-delete.
 
 import SwiftUI
 import FirebaseFirestore
-import AVFoundation
 
 struct NotesListView: View {
 
@@ -12,11 +11,17 @@ struct NotesListView: View {
 
     @State private var notes: [FirestoreNote] = []
     @State private var isLoading = true
-    @State private var selectedNote: FirestoreNote?
-    @State private var isPlaying = false
-    @State private var audioPlayer: AVPlayer?
-    @State private var playbackObserver: NSObjectProtocol?
     @State private var notesListener: ListenerRegistration?
+    @State private var noteToDelete: FirestoreNote?
+    @State private var showDeleteConfirmation = false
+
+    private let uploadService = UploadService()
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .short
+        return formatter
+    }()
 
     var body: some View {
         NavigationStack {
@@ -50,12 +55,21 @@ struct NotesListView: View {
                 loadNotes()
             }
             .onDisappear {
-                // Clean up listeners
                 notesListener?.remove()
-                if let observer = playbackObserver {
-                    NotificationCenter.default.removeObserver(observer)
+            }
+            .confirmationDialog(
+                "Delete this note?",
+                isPresented: $showDeleteConfirmation,
+                presenting: noteToDelete
+            ) { note in
+                Button("Delete", role: .destructive) {
+                    deleteNote(note)
                 }
-                audioPlayer?.pause()
+                Button("Cancel", role: .cancel) {
+                    noteToDelete = nil
+                }
+            } message: { _ in
+                Text("This will permanently delete the note and its audio recording.")
             }
         }
     }
@@ -73,9 +87,21 @@ struct NotesListView: View {
 
             // Uploaded notes section
             if !notes.isEmpty {
-                Section("Uploaded") {
+                Section("Notes") {
                     ForEach(notes) { note in
-                        uploadedRow(note)
+                        NavigationLink(destination: NoteDetailView(note: note, onDelete: {
+                            // Note will be removed via Firestore listener
+                        })) {
+                            uploadedRow(note)
+                        }
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            Button(role: .destructive) {
+                                noteToDelete = note
+                                showDeleteConfirmation = true
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }
@@ -107,30 +133,32 @@ struct NotesListView: View {
     }
 
     private func uploadedRow(_ note: FirestoreNote) -> some View {
-        Button {
-            playNote(note)
-        } label: {
+        VStack(alignment: .leading, spacing: 4) {
+            // Date and duration
             HStack {
-                VStack(alignment: .leading) {
-                    Text(formatDate(note.createdAt))
-                        .font(.headline)
-                    Text(formatDuration(note.durationMs))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-
+                Text(formatDate(note.createdAt))
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
                 Spacer()
+                Text(formatDuration(note.durationMs))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
 
-                if selectedNote?.id == note.id && isPlaying {
-                    Image(systemName: "speaker.wave.2.fill")
-                        .foregroundColor(.blue)
-                } else {
-                    Image(systemName: "play.circle")
-                        .foregroundColor(.secondary)
-                }
+            // Transcription preview
+            if let transcription = note.transcription, !transcription.isEmpty {
+                Text(transcription)
+                    .font(.body)
+                    .lineLimit(2)
+                    .foregroundColor(.primary)
+            } else {
+                Text("No transcription")
+                    .font(.body)
+                    .foregroundColor(.secondary)
+                    .italic()
             }
         }
-        .foregroundColor(.primary)
+        .padding(.vertical, 4)
     }
 
     private func statusBadge(for status: NoteStatus) -> some View {
@@ -178,49 +206,23 @@ struct NotesListView: View {
             }
     }
 
-    private func playNote(_ note: FirestoreNote) {
-        guard let uid = authService.uid else { return }
-
-        guard let noteUUID = UUID(uuidString: note.noteId) else {
-            print("Invalid note ID format: \(note.noteId)")
-            return
-        }
+    private func deleteNote(_ note: FirestoreNote) {
+        guard let uid = authService.uid,
+              let noteUUID = UUID(uuidString: note.noteId) else { return }
 
         Task {
             do {
-                let url = try await UploadService().downloadURL(for: noteUUID, uid: uid)
-
-                // Clean up previous observer
-                if let observer = playbackObserver {
-                    NotificationCenter.default.removeObserver(observer)
-                }
-
-                audioPlayer?.pause()
-                audioPlayer = AVPlayer(url: url)
-                audioPlayer?.play()
-
-                selectedNote = note
-                isPlaying = true
-
-                // Observe when playback ends
-                playbackObserver = NotificationCenter.default.addObserver(
-                    forName: .AVPlayerItemDidPlayToEndTime,
-                    object: audioPlayer?.currentItem,
-                    queue: .main
-                ) { _ in
-                    isPlaying = false
-                }
+                try await uploadService.deleteNote(noteId: noteUUID, uid: uid)
+                // Note will be removed from list via Firestore listener
             } catch {
-                print("Failed to play note: \(error)")
+                print("Failed to delete note: \(error)")
             }
+            noteToDelete = nil
         }
     }
 
     private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .short
-        return formatter.string(from: date)
+        Self.dateFormatter.string(from: date)
     }
 
     private func formatDuration(_ ms: Int) -> String {
@@ -240,4 +242,9 @@ struct FirestoreNote: Codable, Identifiable {
     let durationMs: Int
     let storagePath: String
     let status: String
+
+    // Transcription fields
+    let transcription: String?
+    let transcriptionStatus: String?
+    let transcriptionLanguage: String?
 }

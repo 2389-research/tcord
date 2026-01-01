@@ -34,6 +34,7 @@ final class UploadQueueManager: ObservableObject {
     private let sessionManager: PhoneSessionManager
 
     private let maxRetries = 3
+    private let maxBackoffSeconds: Double = 30
     private var processingTask: Task<Void, Never>?
 
     init(
@@ -166,8 +167,8 @@ final class UploadQueueManager: ObservableObject {
                         // Will retry
                         queue[currentIndex].metadata.status = .received
 
-                        // Exponential backoff
-                        let delay = pow(2.0, Double(queue[currentIndex].retryCount))
+                        // Exponential backoff with cap
+                        let delay = min(pow(2.0, Double(queue[currentIndex].retryCount)), maxBackoffSeconds)
                         try? await Task.sleep(for: .seconds(delay))
                     }
 

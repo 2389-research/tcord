@@ -70,7 +70,7 @@ final class UploadService {
             .collection("users").document(uid)
             .collection("notes").document(metadata.id.uuidString)
 
-        let firestoreData: [String: Any] = [
+        var firestoreData: [String: Any] = [
             "noteId": metadata.id.uuidString,
             "createdAt": Timestamp(date: metadata.createdAt),
             "receivedAt": Timestamp(date: Date()),
@@ -79,6 +79,7 @@ final class UploadService {
             "storagePath": storagePath,
             "contentType": "audio/mp4",
             "status": NoteStatus.uploaded.rawValue,
+            "transcriptionStatus": metadata.transcriptionStatus.rawValue,
             "device": [
                 "watchModel": metadata.watchModel ?? "",
                 "phoneModel": metadata.phoneModel ?? "",
@@ -86,6 +87,14 @@ final class UploadService {
                 "iOS": metadata.iOSVersion ?? ""
             ]
         ]
+
+        // Include transcription if available
+        if let transcription = metadata.transcription {
+            firestoreData["transcription"] = transcription
+        }
+        if let language = metadata.transcriptionLanguage {
+            firestoreData["transcriptionLanguage"] = language
+        }
 
         try await docRef.setData(firestoreData)
 
@@ -100,6 +109,20 @@ final class UploadService {
         let storagePath = "users/\(uid)/notes/\(noteId.uuidString)/audio.m4a"
         let storageRef = storage.reference().child(storagePath)
         return try await storageRef.downloadURL()
+    }
+
+    /// Delete a note from Firestore and Storage
+    func deleteNote(noteId: UUID, uid: String) async throws {
+        // Delete Firestore document first
+        let docRef = firestore
+            .collection("users").document(uid)
+            .collection("notes").document(noteId.uuidString)
+        try await docRef.delete()
+
+        // Delete Storage file
+        let storagePath = "users/\(uid)/notes/\(noteId.uuidString)/audio.m4a"
+        let storageRef = storage.reference().child(storagePath)
+        try await storageRef.delete()
     }
 }
 

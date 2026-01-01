@@ -21,14 +21,20 @@ final class PhoneSessionManager: NSObject, ObservableObject {
 
     private var session: WCSession?
     private let inboxDirectory: URL
+    private var pendingAcks: [NoteAck] = []
+    private let pendingAcksURL: URL
 
     private override init() {
         // Create directory to store received files
-        inboxDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
-            .appendingPathComponent("WatchInbox")
+        let documentsDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        inboxDirectory = documentsDir.appendingPathComponent("WatchInbox")
+        pendingAcksURL = documentsDir.appendingPathComponent("pending_acks.json")
+
         try? FileManager.default.createDirectory(at: inboxDirectory, withIntermediateDirectories: true)
 
         super.init()
+
+        loadPendingAcks()
     }
 
     /// Activate the WatchConnectivity session
@@ -43,16 +49,62 @@ final class PhoneSessionManager: NSObject, ObservableObject {
         session?.activate()
     }
 
-    /// Send ack back to watch
+    /// Send ack back to watch, queuing if not reachable
     func sendAck(_ ack: NoteAck) {
         guard let session = session, session.isReachable else {
-            print("Watch not reachable, ack will be sent when available")
+            queueAck(ack)
             return
         }
 
+        sendAckImmediate(ack)
+    }
+
+    private func sendAckImmediate(_ ack: NoteAck) {
+        guard let session = session else { return }
+
         let message = WCMessageCoder.encodeAck(ack)
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("Failed to send ack: \(error)")
+        session.sendMessage(message, replyHandler: nil) { [weak self] error in
+            print("Failed to send ack: \(error), will retry later")
+            self?.queueAck(ack)
+        }
+    }
+
+    private func queueAck(_ ack: NoteAck) {
+        // Avoid duplicates
+        if !pendingAcks.contains(where: { $0.noteId == ack.noteId }) {
+            pendingAcks.append(ack)
+            savePendingAcks()
+        }
+    }
+
+    private func flushPendingAcks() {
+        guard let session = session, session.isReachable, !pendingAcks.isEmpty else { return }
+
+        let acksToSend = pendingAcks
+        pendingAcks.removeAll()
+        savePendingAcks()
+
+        for ack in acksToSend {
+            sendAckImmediate(ack)
+        }
+    }
+
+    private func loadPendingAcks() {
+        guard FileManager.default.fileExists(atPath: pendingAcksURL.path) else { return }
+        do {
+            let data = try Data(contentsOf: pendingAcksURL)
+            pendingAcks = try JSONDecoder().decode([NoteAck].self, from: data)
+        } catch {
+            print("Failed to load pending acks: \(error)")
+        }
+    }
+
+    private func savePendingAcks() {
+        do {
+            let data = try JSONEncoder().encode(pendingAcks)
+            try data.write(to: pendingAcksURL)
+        } catch {
+            print("Failed to save pending acks: \(error)")
         }
     }
 
@@ -97,6 +149,10 @@ extension PhoneSessionManager: WCSessionDelegate {
         Task { @MainActor in
             self.isReachable = session.isReachable
         }
+
+        if session.isReachable {
+            flushPendingAcks()
+        }
     }
 
     // Receive files from watch
@@ -115,13 +171,20 @@ extension PhoneSessionManager: WCSessionDelegate {
         let formatter = ISO8601DateFormatter()
         let createdAt = formatter.date(from: createdAtString) ?? Date()
 
+        // Parse transcription status
+        let transcriptionStatusString = metadataDict["transcriptionStatus"] as? String
+        let transcriptionStatus = transcriptionStatusString.flatMap { TranscriptionStatus(rawValue: $0) } ?? .pending
+
         // Create metadata object
         var metadata = VoiceNoteMetadata(
             id: noteId,
             createdAt: createdAt,
             durationMs: durationMs,
-            status: .received
+            status: .received,
+            transcriptionStatus: transcriptionStatus
         )
+        metadata.transcription = metadataDict["transcription"] as? String
+        metadata.transcriptionLanguage = metadataDict["transcriptionLanguage"] as? String
         metadata.watchModel = metadataDict["watchModel"] as? String
         metadata.watchOSVersion = metadataDict["watchOSVersion"] as? String
         metadata.phoneModel = getPhoneModel()

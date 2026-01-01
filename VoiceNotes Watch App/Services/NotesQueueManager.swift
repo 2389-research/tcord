@@ -73,6 +73,17 @@ final class NotesQueueManager: ObservableObject {
         saveNotes()
     }
 
+    /// Retry all pending notes (queued and failed) - called when connectivity restored
+    func retryPending() {
+        for index in notes.indices where notes[index].status == .queued || notes[index].status == .failed {
+            if notes[index].status == .failed {
+                notes[index].status = .queued
+            }
+            transferNote(notes[index])
+        }
+        saveNotes()
+    }
+
     /// Get counts by status
     var queuedCount: Int {
         notes.filter { $0.status == .queued || $0.status == .transferring }.count

@@ -47,13 +47,22 @@ final class WatchSessionManager: NSObject, ObservableObject {
         }
 
         // Encode metadata as dictionary for WC
-        let metadataDict: [String: Any] = [
+        var metadataDict: [String: Any] = [
             "noteId": metadata.id.uuidString,
             "createdAt": metadata.createdAtISO,
             "durationMs": metadata.durationMs,
             "watchModel": metadata.watchModel ?? "",
-            "watchOSVersion": metadata.watchOSVersion ?? ""
+            "watchOSVersion": metadata.watchOSVersion ?? "",
+            "transcriptionStatus": metadata.transcriptionStatus.rawValue
         ]
+
+        // Include transcription if available
+        if let transcription = metadata.transcription {
+            metadataDict["transcription"] = transcription
+        }
+        if let language = metadata.transcriptionLanguage {
+            metadataDict["transcriptionLanguage"] = language
+        }
 
         let transfer = session.transferFile(url, metadata: metadataDict)
 
