@@ -80,7 +80,7 @@ tcord/
 │   ├── firestore.rules
 │   └── storage.rules
 ├── docs/plans/                    # Design docs
-├── site/                          # Landing page
+├── docs/index.html                # Landing page
 ├── project.yml                    # XcodeGen config
 └── .mcp.json                      # XcodeBuildMCP config
 ```
