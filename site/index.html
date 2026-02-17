@@ -1,0 +1,1280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoiceNotes — Capture thoughts on your wrist</title>
+    <meta name="description" content="Record voice memos on your Apple Watch. Instant on-device transcription. Syncs everywhere. Nothing gets lost.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <style>
+        /* ========================================
+           TAPE & TRAIL — Field Tape Palette
+           ======================================== */
+
+        :root {
+            --primary: #2d3a2e;
+            --primary-light: #3d4e3f;
+            --secondary: #f4f0e8;
+            --background: #faf8f4;
+            --accent: #c67a3c;
+            --accent-light: #d4944f;
+            --text: #1a1a1a;
+            --text-muted: #6b6860;
+            --text-light: #9c978e;
+            --border: #e5e0d6;
+            --card-bg: #ffffff;
+
+            --font-display: 'Fraunces', Georgia, serif;
+            --font-body: 'DM Sans', system-ui, sans-serif;
+            --font-mono: 'IBM Plex Mono', monospace;
+
+            --radius: 12px;
+            --radius-lg: 20px;
+            --max-width: 1120px;
+        }
+
+        /* ========================================
+           RESET & BASE
+           ======================================== */
+
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: var(--font-body);
+            background: var(--background);
+            color: var(--text);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        img {
+            max-width: 100%;
+            display: block;
+        }
+
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        /* ========================================
+           UTILITIES
+           ======================================== */
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        .mono {
+            font-family: var(--font-mono);
+            font-size: 0.8125rem;
+            letter-spacing: 0.02em;
+        }
+
+        .section-label {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+        }
+
+        /* ========================================
+           FADE-IN ANIMATIONS
+           ======================================== */
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .fade-in-delay-1 { transition-delay: 0.1s; }
+        .fade-in-delay-2 { transition-delay: 0.2s; }
+        .fade-in-delay-3 { transition-delay: 0.3s; }
+        .fade-in-delay-4 { transition-delay: 0.4s; }
+
+        /* ========================================
+           NAV
+           ======================================== */
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: rgba(250, 248, 244, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-inner {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 24px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 1.125rem;
+            color: var(--primary);
+        }
+
+        .nav-brand svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+        }
+
+        .nav-links a {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: color 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text);
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 18px;
+            background: var(--primary);
+            color: var(--secondary);
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 100px;
+            transition: background 0.2s;
+        }
+
+        .nav-cta:hover {
+            background: var(--primary-light);
+        }
+
+        /* ========================================
+           HERO
+           ======================================== */
+
+        .hero {
+            padding: 160px 0 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(ellipse, rgba(198, 122, 60, 0.06) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px 6px 8px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            margin-bottom: 32px;
+        }
+
+        .hero-label-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse-dot 2.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.85); }
+        }
+
+        .hero-label span {
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            letter-spacing: 0.02em;
+        }
+
+        .hero h1 {
+            font-family: var(--font-display);
+            font-size: clamp(2.5rem, 6vw, 4.25rem);
+            font-weight: 400;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            color: var(--text);
+            max-width: 720px;
+            margin: 0 auto 24px;
+            font-optical-sizing: auto;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--primary);
+        }
+
+        .hero-sub {
+            font-size: 1.125rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            max-width: 480px;
+            margin: 0 auto 40px;
+        }
+
+        .hero-actions {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 64px;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: var(--primary);
+            color: var(--secondary);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-light);
+            transform: translateY(-1px);
+        }
+
+        .btn-primary svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 28px;
+            background: transparent;
+            color: var(--text);
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-light);
+            background: var(--card-bg);
+        }
+
+        /* Waveform decoration */
+        .hero-waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            margin: 0 auto 48px;
+            height: 48px;
+        }
+
+        .hero-waveform .bar {
+            width: 3px;
+            border-radius: 2px;
+            background: var(--primary);
+            opacity: 0.15;
+            animation: waveform-bar 2s ease-in-out infinite;
+        }
+
+        @keyframes waveform-bar {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(var(--scale)); }
+        }
+
+        /* Cassette reel decorative element */
+        .hero-reel {
+            position: absolute;
+            opacity: 0.04;
+            pointer-events: none;
+        }
+
+        .hero-reel-left {
+            top: 200px;
+            left: -60px;
+            width: 220px;
+            height: 220px;
+            animation: spin-slow 60s linear infinite;
+        }
+
+        .hero-reel-right {
+            bottom: 40px;
+            right: -40px;
+            width: 180px;
+            height: 180px;
+            animation: spin-slow 45s linear infinite reverse;
+        }
+
+        @keyframes spin-slow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* Trust strip */
+        .hero-trust {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .hero-trust-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: var(--font-mono);
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        .hero-trust-item svg {
+            width: 16px;
+            height: 16px;
+            color: var(--accent);
+        }
+
+        /* ========================================
+           WAVEFORM DIVIDER
+           ======================================== */
+
+        .waveform-divider {
+            padding: 32px 0;
+            overflow: hidden;
+        }
+
+        .waveform-divider svg {
+            width: 100%;
+            height: 32px;
+            opacity: 0.08;
+        }
+
+        /* ========================================
+           FEATURES
+           ======================================== */
+
+        .features {
+            padding: 80px 0;
+        }
+
+        .features-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .features-header h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-top: 12px;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 36px 28px;
+            transition: border-color 0.3s, transform 0.2s;
+        }
+
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary);
+            border-radius: 12px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .feature-icon svg {
+            width: 24px;
+            height: 24px;
+        }
+
+        .feature-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+        }
+
+        .feature-card .mono {
+            display: block;
+            margin-top: 16px;
+            color: var(--accent);
+        }
+
+        /* ========================================
+           HOW IT WORKS
+           ======================================== */
+
+        .how-it-works {
+            padding: 80px 0;
+            background: var(--secondary);
+        }
+
+        .how-header {
+            text-align: center;
+            margin-bottom: 64px;
+        }
+
+        .how-header h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-top: 12px;
+        }
+
+        .how-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 48px;
+            position: relative;
+        }
+
+        .how-steps::before {
+            content: '';
+            position: absolute;
+            top: 36px;
+            left: calc(16.67% + 24px);
+            right: calc(16.67% + 24px);
+            height: 1px;
+            background: var(--border);
+        }
+
+        .how-step {
+            text-align: center;
+        }
+
+        .step-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            font-family: var(--font-mono);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .step-number svg {
+            width: 28px;
+            height: 28px;
+            color: var(--primary);
+        }
+
+        .how-step h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .how-step p {
+            font-size: 0.9375rem;
+            color: var(--text-muted);
+            line-height: 1.6;
+            max-width: 280px;
+            margin: 0 auto;
+        }
+
+        /* ========================================
+           SPECS
+           ======================================== */
+
+        .specs {
+            padding: 80px 0;
+        }
+
+        .specs-header {
+            text-align: center;
+            margin-bottom: 56px;
+        }
+
+        .specs-header h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            letter-spacing: -0.02em;
+            margin-top: 12px;
+        }
+
+        .specs-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .spec-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            padding: 24px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+        }
+
+        .spec-icon {
+            flex-shrink: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--secondary);
+            border-radius: 10px;
+            color: var(--accent);
+        }
+
+        .spec-icon svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .spec-item h4 {
+            font-family: var(--font-body);
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .spec-item p {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* ========================================
+           CTA
+           ======================================== */
+
+        .cta {
+            padding: 80px 0 100px;
+        }
+
+        .cta-box {
+            background: var(--primary);
+            border-radius: var(--radius-lg);
+            padding: 64px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-box::before {
+            content: '';
+            position: absolute;
+            top: -100px;
+            right: -100px;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(198, 122, 60, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-box::after {
+            content: '';
+            position: absolute;
+            bottom: -80px;
+            left: -80px;
+            width: 250px;
+            height: 250px;
+            background: radial-gradient(circle, rgba(244, 240, 232, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .cta-box h2 {
+            font-family: var(--font-display);
+            font-size: clamp(1.75rem, 4vw, 2.5rem);
+            font-weight: 400;
+            color: var(--secondary);
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+            position: relative;
+        }
+
+        .cta-box p {
+            font-size: 1.0625rem;
+            color: rgba(244, 240, 232, 0.65);
+            margin-bottom: 32px;
+            max-width: 440px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+        }
+
+        .btn-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font-body);
+            font-size: 1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 100px;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.15s;
+            position: relative;
+        }
+
+        .btn-cta:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .btn-cta svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Tiny waveform in CTA */
+        .cta-waveform {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            margin: 32px auto 0;
+            height: 24px;
+            opacity: 0.15;
+        }
+
+        .cta-waveform .bar {
+            width: 2px;
+            border-radius: 1px;
+            background: var(--secondary);
+            animation: waveform-bar 2s ease-in-out infinite;
+        }
+
+        /* ========================================
+           FOOTER
+           ======================================== */
+
+        footer {
+            padding: 40px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-inner {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--primary);
+        }
+
+        .footer-brand svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer-links {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .footer-links a {
+            font-size: 0.8125rem;
+            color: var(--text-light);
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            font-size: 0.75rem;
+            color: var(--text-light);
+        }
+
+        /* ========================================
+           RESPONSIVE
+           ======================================== */
+
+        @media (max-width: 768px) {
+            .nav-links a:not(.nav-cta) {
+                display: none;
+            }
+
+            .hero {
+                padding: 120px 0 60px;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+
+            .how-steps {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .how-steps::before {
+                display: none;
+            }
+
+            .specs-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cta-box {
+                padding: 48px 24px;
+            }
+
+            .footer-inner {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+
+            .hero-reel {
+                display: none;
+            }
+
+            .hero-trust {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ======================================== NAV ======================================== -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="nav-brand">
+                <!-- Waveform icon -->
+                <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <rect width="28" height="28" rx="8" fill="#2d3a2e"/>
+                    <rect x="5" y="10" width="2" height="8" rx="1" fill="#f4f0e8"/>
+                    <rect x="9" y="7" width="2" height="14" rx="1" fill="#f4f0e8"/>
+                    <rect x="13" y="5" width="2" height="18" rx="1" fill="#c67a3c"/>
+                    <rect x="17" y="8" width="2" height="12" rx="1" fill="#f4f0e8"/>
+                    <rect x="21" y="11" width="2" height="6" rx="1" fill="#f4f0e8"/>
+                </svg>
+                VoiceNotes
+            </a>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#how-it-works">How It Works</a>
+                <a href="#specs">Specs</a>
+                <a href="#download" class="nav-cta">
+                    <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 1.5v10.5m0 0L5.25 8.25M9 12l3.75-3.75M3 15h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Get the App
+                </a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ======================================== HERO ======================================== -->
+    <section class="hero">
+        <!-- Cassette reel decorations -->
+        <svg class="hero-reel hero-reel-left" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="90" stroke="#2d3a2e" stroke-width="2"/>
+            <circle cx="100" cy="100" r="60" stroke="#2d3a2e" stroke-width="1"/>
+            <circle cx="100" cy="100" r="30" stroke="#2d3a2e" stroke-width="2"/>
+            <circle cx="100" cy="100" r="12" fill="#2d3a2e"/>
+            <line x1="100" y1="10" x2="100" y2="40" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="10" y1="100" x2="40" y2="100" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="160" y1="100" x2="190" y2="100" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="100" y1="160" x2="100" y2="190" stroke="#2d3a2e" stroke-width="1"/>
+        </svg>
+        <svg class="hero-reel hero-reel-right" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="100" cy="100" r="90" stroke="#2d3a2e" stroke-width="2"/>
+            <circle cx="100" cy="100" r="60" stroke="#2d3a2e" stroke-width="1"/>
+            <circle cx="100" cy="100" r="30" stroke="#2d3a2e" stroke-width="2"/>
+            <circle cx="100" cy="100" r="12" fill="#2d3a2e"/>
+            <line x1="100" y1="10" x2="100" y2="40" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="10" y1="100" x2="40" y2="100" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="160" y1="100" x2="190" y2="100" stroke="#2d3a2e" stroke-width="1"/>
+            <line x1="100" y1="160" x2="100" y2="190" stroke="#2d3a2e" stroke-width="1"/>
+        </svg>
+
+        <div class="container">
+            <div class="fade-in">
+                <div class="hero-label">
+                    <div class="hero-label-dot"></div>
+                    <span>Apple Watch + iPhone</span>
+                </div>
+            </div>
+
+            <h1 class="fade-in fade-in-delay-1">
+                Speak it. <em>Keep it.</em><br>
+                Find it later.
+            </h1>
+
+            <p class="hero-sub fade-in fade-in-delay-2">
+                Tap your wrist, say what's on your mind. VoiceNotes transcribes on-device and syncs to your phone. Nothing gets lost.
+            </p>
+
+            <div class="hero-actions fade-in fade-in-delay-3">
+                <a href="#download" class="btn-primary">
+                    <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.75 6.375C12.75 5.38044 12.3549 4.42661 11.6517 3.72335C10.9484 3.02009 9.99457 2.625 9 2.625C8.00544 2.625 7.05161 3.02009 6.34835 3.72335C5.64509 4.42661 5.25 5.38044 5.25 6.375C5.25 10.5 3.375 11.625 3.375 11.625H14.625C14.625 11.625 12.75 10.5 12.75 6.375Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 15.375C9.62132 15.375 10.125 14.8713 10.125 14.25H7.875C7.875 14.8713 8.37868 15.375 9 15.375Z" stroke="currentColor" stroke-width="1.25"/>
+                    </svg>
+                    Notify Me at Launch
+                </a>
+                <a href="#how-it-works" class="btn-secondary">See how it works</a>
+            </div>
+
+            <!-- Waveform visualization -->
+            <div class="hero-waveform fade-in fade-in-delay-4" aria-hidden="true"></div>
+
+            <div class="hero-trust fade-in fade-in-delay-4">
+                <div class="hero-trust-item">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M8 1l2.25 4.56 5.03.73-3.64 3.55.86 5.01L8 12.27l-4.5 2.58.86-5.01-3.64-3.55 5.03-.73L8 1z" fill="currentColor"/></svg>
+                    On-device transcription
+                </div>
+                <div class="hero-trust-item">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M13.5 4.5L6 12 2.5 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    Works offline
+                </div>
+                <div class="hero-trust-item">
+                    <svg viewBox="0 0 16 16" fill="none"><path d="M8 1.5v3m0 7v3m-4.6-10.1l2.12 2.12m5.96 5.96l2.12 2.12M1.5 8h3m7 0h3M3.4 12.6l2.12-2.12m5.96-5.96l2.12-2.12" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+                    Nothing gets lost
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== FEATURES ======================================== -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="features-header fade-in">
+                <span class="section-label">Features</span>
+                <h2>Built for the way thoughts actually happen</h2>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card fade-in fade-in-delay-1">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="22"/>
+                        </svg>
+                    </div>
+                    <h3>One-tap recording</h3>
+                    <p>Tap the button on your Apple Watch and start talking. No app switching, no fumbling. The interface is one button because that's all you need.</p>
+                    <span class="mono">AAC · 22kHz · mono</span>
+                </div>
+
+                <div class="feature-card fade-in fade-in-delay-2">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 7h16M4 12h10M4 17h12"/>
+                            <circle cx="19" cy="12" r="2"/>
+                            <circle cx="19" cy="17" r="2"/>
+                        </svg>
+                    </div>
+                    <h3>Instant transcription</h3>
+                    <p>Apple Speech runs directly on your Watch the moment you stop recording. No internet needed. Your words become text before your arm drops.</p>
+                    <span class="mono">on-device · private</span>
+                </div>
+
+                <div class="feature-card fade-in fade-in-delay-3">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"/>
+                            <path d="M12 6v6l4 2"/>
+                        </svg>
+                    </div>
+                    <h3>Nothing gets lost</h3>
+                    <p>Both devices keep your recording until it's confirmed in the cloud. Durable queues with automatic retry. Your notes survive dropped connections, restarts, and dead zones.</p>
+                    <span class="mono">retry · persist · sync</span>
+                </div>
+
+                <div class="feature-card fade-in fade-in-delay-1">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                            <line x1="12" y1="18" x2="12.01" y2="18"/>
+                        </svg>
+                    </div>
+                    <h3>Browse on iPhone</h3>
+                    <p>All your notes land on your phone with full transcription text. Tap to read, play the original audio, copy, or share. Swipe to delete.</p>
+                    <span class="mono">read · play · share</span>
+                </div>
+
+                <div class="feature-card fade-in fade-in-delay-2">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                    </div>
+                    <h3>Background sync</h3>
+                    <p>WatchConnectivity transfers your recordings in the background. You don't need to open the iPhone app. It just arrives.</p>
+                    <span class="mono">WatchConnectivity</span>
+                </div>
+
+                <div class="feature-card fade-in fade-in-delay-3">
+                    <div class="feature-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                        </svg>
+                    </div>
+                    <h3>Your data, your silo</h3>
+                    <p>Sign in with Apple. Every recording and transcription is stored under your user ID with Firebase security rules. Nobody else can access it.</p>
+                    <span class="mono">firebase · isolated</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== HOW IT WORKS ======================================== -->
+    <section class="how-it-works" id="how-it-works">
+        <div class="container">
+            <div class="how-header fade-in">
+                <span class="section-label">How It Works</span>
+                <h2>Three seconds from thought to text</h2>
+            </div>
+
+            <div class="how-steps">
+                <div class="how-step fade-in fade-in-delay-1">
+                    <div class="step-number">
+                        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="14" cy="14" r="8"/>
+                            <circle cx="14" cy="14" r="3" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <h3>Record</h3>
+                    <p>Tap the button on your Apple Watch. Talk. Tap again when done. That's it.</p>
+                </div>
+
+                <div class="how-step fade-in fade-in-delay-2">
+                    <div class="step-number">
+                        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M6 10h16M6 14h10M6 18h12"/>
+                        </svg>
+                    </div>
+                    <h3>Transcribe</h3>
+                    <p>On-device speech recognition turns your voice into text instantly. No cloud, no latency, no privacy concerns.</p>
+                </div>
+
+                <div class="how-step fade-in fade-in-delay-3">
+                    <div class="step-number">
+                        <svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M22 12A10 10 0 1 1 12 2"/>
+                            <polyline points="22 4 22 12 14 12"/>
+                        </svg>
+                    </div>
+                    <h3>Sync</h3>
+                    <p>Audio and text transfer to your iPhone and up to the cloud. Both devices retain until confirmed. Nothing falls through the cracks.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== SPECS ======================================== -->
+    <section class="specs" id="specs">
+        <div class="container">
+            <div class="specs-header fade-in">
+                <span class="section-label">Under the Hood</span>
+                <h2>Engineered for reliability</h2>
+            </div>
+
+            <div class="specs-grid">
+                <div class="spec-item fade-in fade-in-delay-1">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M10 2a4 4 0 0 0-4 4v4a4 4 0 0 0 8 0V6a4 4 0 0 0-4-4z"/>
+                            <path d="M16 10a6 6 0 0 1-12 0"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>AAC Audio at 22kHz</h4>
+                        <p>Voice-optimized codec. Small files, clear playback.</p>
+                    </div>
+                </div>
+
+                <div class="spec-item fade-in fade-in-delay-2">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="3" width="16" height="14" rx="2"/>
+                            <path d="M6 7h8M6 10h5"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Apple Speech Framework</h4>
+                        <p>On-device transcription. Private, fast, works without signal.</p>
+                    </div>
+                </div>
+
+                <div class="spec-item fade-in fade-in-delay-1">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M4 4l6 6 6-6"/>
+                            <path d="M4 10l6 6 6-6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Durable Upload Queue</h4>
+                        <p>Exponential backoff, persists across restarts, retries automatically.</p>
+                    </div>
+                </div>
+
+                <div class="spec-item fade-in fade-in-delay-2">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="9" width="14" height="9" rx="2"/>
+                            <path d="M7 9V6a3 3 0 0 1 6 0v3"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Firebase Security Rules</h4>
+                        <p>User-isolated storage. Your data lives under your UID only.</p>
+                    </div>
+                </div>
+
+                <div class="spec-item fade-in fade-in-delay-1">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="10" cy="10" r="8"/>
+                            <path d="M10 6v4l2.5 2.5"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Background Transfer</h4>
+                        <p>WatchConnectivity sends files without opening the iPhone app.</p>
+                    </div>
+                </div>
+
+                <div class="spec-item fade-in fade-in-delay-2">
+                    <div class="spec-icon">
+                        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M14.5 2H18v3.5"/>
+                            <path d="M5.5 18H2v-3.5"/>
+                            <path d="M18 2l-6 6M2 18l6-6"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <h4>Requires iOS 17 + watchOS 10</h4>
+                        <p>Built with Swift Concurrency and the latest Apple frameworks.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== CTA ======================================== -->
+    <section class="cta" id="download">
+        <div class="container">
+            <div class="cta-box fade-in">
+                <h2>Ready to stop losing thoughts?</h2>
+                <p>VoiceNotes is coming soon to the App Store. Get notified when it launches.</p>
+                <a href="#" class="btn-cta">
+                    <svg viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12.75 6.375C12.75 5.38044 12.3549 4.42661 11.6517 3.72335C10.9484 3.02009 9.99457 2.625 9 2.625C8.00544 2.625 7.05161 3.02009 6.34835 3.72335C5.64509 4.42661 5.25 5.38044 5.25 6.375C5.25 10.5 3.375 11.625 3.375 11.625H14.625C14.625 11.625 12.75 10.5 12.75 6.375Z" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 15.375C9.62132 15.375 10.125 14.8713 10.125 14.25H7.875C7.875 14.8713 8.37868 15.375 9 15.375Z" stroke="currentColor" stroke-width="1.25"/>
+                    </svg>
+                    Notify Me at Launch
+                </a>
+                <div class="cta-waveform" aria-hidden="true"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ======================================== FOOTER ======================================== -->
+    <footer>
+        <div class="container">
+            <div class="footer-inner">
+                <div class="footer-brand">
+                    <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect width="28" height="28" rx="8" fill="#2d3a2e"/>
+                        <rect x="5" y="10" width="2" height="8" rx="1" fill="#f4f0e8"/>
+                        <rect x="9" y="7" width="2" height="14" rx="1" fill="#f4f0e8"/>
+                        <rect x="13" y="5" width="2" height="18" rx="1" fill="#c67a3c"/>
+                        <rect x="17" y="8" width="2" height="12" rx="1" fill="#f4f0e8"/>
+                        <rect x="21" y="11" width="2" height="6" rx="1" fill="#f4f0e8"/>
+                    </svg>
+                    VoiceNotes
+                </div>
+                <div class="footer-links">
+                    <a href="#">Privacy</a>
+                    <a href="#">Terms</a>
+                    <a href="https://github.com/harperreed/tcord">GitHub</a>
+                </div>
+                <span class="footer-copy">&copy; 2026 VoiceNotes</span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ======================================== SCRIPTS ======================================== -->
+    <script>
+        // Generate waveform bars
+        function createWaveformBars(container, count, minScale, maxScale) {
+            for (let i = 0; i < count; i++) {
+                const bar = document.createElement('div');
+                bar.className = 'bar';
+                const scale = minScale + Math.random() * (maxScale - minScale);
+                const height = 4 + Math.random() * 28;
+                bar.style.height = height + 'px';
+                bar.style.setProperty('--scale', scale.toFixed(2));
+                bar.style.animationDelay = (Math.random() * 2).toFixed(2) + 's';
+                container.appendChild(bar);
+            }
+        }
+
+        // Hero waveform
+        const heroWaveform = document.querySelector('.hero-waveform');
+        if (heroWaveform) {
+            createWaveformBars(heroWaveform, 48, 0.3, 2.5);
+        }
+
+        // CTA waveform
+        const ctaWaveform = document.querySelector('.cta-waveform');
+        if (ctaWaveform) {
+            createWaveformBars(ctaWaveform, 60, 0.3, 2.0);
+        }
+
+        // Intersection Observer for fade-in animations
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            },
+            { threshold: 0.1, rootMargin: '0px 0px -40px 0px' }
+        );
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // Smooth scroll for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+    </script>
+</body>
+</html>
