@@ -1,6 +1,6 @@
-name: VoiceNotes
+name: tcord
 options:
-  bundleIdPrefix: com.voicenotes
+  bundleIdPrefix: com.tcord
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
@@ -18,25 +18,25 @@ packages:
     from: "11.0.0"
 
 targets:
-  VoiceNotes:
+  tcord:
     type: application
     platform: iOS
     sources:
-      - path: VoiceNotes
+      - path: tcord
       - path: Shared
     settings:
       base:
-        INFOPLIST_FILE: VoiceNotes/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.voicenotes.app
-        CODE_SIGN_ENTITLEMENTS: VoiceNotes/VoiceNotes.entitlements
+        INFOPLIST_FILE: tcord/Info.plist
+        PRODUCT_BUNDLE_IDENTIFIER: com.tcord.app
+        CODE_SIGN_ENTITLEMENTS: tcord/tcord.entitlements
     entitlements:
-      path: VoiceNotes/VoiceNotes.entitlements
+      path: tcord/tcord.entitlements
       properties:
         com.apple.developer.applesignin:
           - Default
         com.apple.developer.watchkit: true
     dependencies:
-      - target: VoiceNotes Watch App
+      - target: tcord Watch App
         embed: true
       - package: Firebase
         product: FirebaseAuth
@@ -45,31 +45,31 @@ targets:
       - package: Firebase
         product: FirebaseStorage
 
-  VoiceNotesTests:
+  tcordTests:
     type: bundle.unit-test
     platform: iOS
     sources:
-      - path: VoiceNotesTests
+      - path: tcordTests
     dependencies:
-      - target: VoiceNotes
+      - target: tcord
 
-  "VoiceNotes Watch App":
+  "tcord Watch App":
     type: application
     platform: watchOS
     sources:
-      - path: "VoiceNotes Watch App"
+      - path: "tcord Watch App"
       - path: Shared
     settings:
       base:
-        INFOPLIST_FILE: "VoiceNotes Watch App/Info.plist"
-        PRODUCT_BUNDLE_IDENTIFIER: com.voicenotes.app.watchkitapp
-        WK_COMPANION_APP_BUNDLE_IDENTIFIER: com.voicenotes.app
+        INFOPLIST_FILE: "tcord Watch App/Info.plist"
+        PRODUCT_BUNDLE_IDENTIFIER: com.tcord.app.watchkitapp
+        WK_COMPANION_APP_BUNDLE_IDENTIFIER: com.tcord.app
     dependencies: []
 
-  "VoiceNotes Watch AppTests":
+  "tcord Watch AppTests":
     type: bundle.unit-test
     platform: watchOS
     sources:
-      - path: "VoiceNotes Watch AppTests"
+      - path: "tcord Watch AppTests"
     dependencies:
-      - target: "VoiceNotes Watch App"
+      - target: "tcord Watch App"

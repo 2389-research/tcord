@@ -2,7 +2,7 @@
 // ABOUTME: Verifies recording lifecycle, file creation, and duration tracking.
 
 import XCTest
-@testable import VoiceNotes_Watch_App
+@testable import tcord_Watch_App
 
 final class AudioRecorderTests: XCTestCase {
 

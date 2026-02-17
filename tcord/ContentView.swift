@@ -1,4 +1,4 @@
-// ABOUTME: Root view for the iOS Voice Notes app.
+// ABOUTME: Root view for the iOS tcord app.
 // ABOUTME: Shows auth or notes list based on authentication state.
 
 import SwiftUI

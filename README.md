@@ -1,10 +1,10 @@
-# VoiceNotes
+# tcord
 
 Record voice memos on your Apple Watch, get instant transcriptions, and sync everything to the cloud.
 
 ## What It Does
 
-VoiceNotes is an Apple Watch + iPhone app for capturing quick voice notes. You tap a button on your wrist, speak, and the Watch transcribes your audio on-device using Apple Speech. The recording and transcription transfer to your iPhone via WatchConnectivity, where a durable upload queue syncs everything to Firebase. Both devices retain files until confirmed uploaded, so nothing gets lost.
+tcord is an Apple Watch + iPhone app for capturing quick voice notes. You tap a button on your wrist, speak, and the Watch transcribes your audio on-device using Apple Speech. The recording and transcription transfer to your iPhone via WatchConnectivity, where a durable upload queue syncs everything to Firebase. Both devices retain files until confirmed uploaded, so nothing gets lost.
 
 ## Architecture
 
@@ -58,7 +58,7 @@ tcord/
 ├── Shared/                        # Code shared between iOS and watchOS
 │   ├── Models/VoiceNote.swift     # VoiceNoteMetadata, NoteStatus, NoteAck
 │   └── Connectivity/             # WatchConnectivity message types
-├── VoiceNotes/                    # iOS app
+├── tcord/                         # iOS app
 │   ├── Services/
 │   │   ├── AuthService.swift      # Sign in with Apple + Firebase Auth
 │   │   ├── PhoneSessionManager.swift  # Receives files from Watch
@@ -69,7 +69,7 @@ tcord/
 │       ├── AuthView.swift         # Sign in with Apple UI
 │       ├── NotesListView.swift    # Notes list with swipe-to-delete
 │       └── NoteDetailView.swift   # Full transcription, playback, share
-├── VoiceNotes Watch App/          # watchOS app
+├── tcord Watch App/               # watchOS app
 │   ├── Services/
 │   │   ├── AudioRecorder.swift        # AVFoundation recording
 │   │   ├── TranscriptionService.swift # On-device speech-to-text
@@ -80,6 +80,7 @@ tcord/
 │   ├── firestore.rules
 │   └── storage.rules
 ├── docs/plans/                    # Design docs
+├── site/                          # Landing page
 ├── project.yml                    # XcodeGen config
 └── .mcp.json                      # XcodeBuildMCP config
 ```
@@ -102,7 +103,7 @@ tcord/
 
 2. Copy the Firebase config template and fill in your values:
    ```bash
-   cp VoiceNotes/GoogleService-Info.plist.example VoiceNotes/GoogleService-Info.plist
+   cp tcord/GoogleService-Info.plist.example tcord/GoogleService-Info.plist
    ```
    Replace the placeholder values with your actual Firebase project config from the [Firebase Console](https://console.firebase.google.com).
 
@@ -113,7 +114,7 @@ tcord/
 
 4. Open the generated project:
    ```bash
-   open VoiceNotes.xcodeproj
+   open tcord.xcodeproj
    ```
 
 5. In Xcode, resolve Swift Package Manager dependencies (should happen automatically).
@@ -137,7 +138,7 @@ Enable these services in your Firebase project:
 
 ## Usage
 
-1. Open VoiceNotes on your iPhone and sign in with Apple
+1. Open tcord on your iPhone and sign in with Apple
 2. On your Apple Watch, tap the blue record button
 3. Speak your note, then tap the red stop button
 4. The Watch transcribes your audio and transfers it to iPhone
@@ -154,16 +155,16 @@ xcodegen generate
 Run watchOS tests:
 ```bash
 xcodebuild test \
-  -project VoiceNotes.xcodeproj \
-  -scheme "VoiceNotes Watch App" \
+  -project tcord.xcodeproj \
+  -scheme "tcord Watch App" \
   -destination 'platform=watchOS Simulator,name=Apple Watch Series 9 (45mm)'
 ```
 
 Run iOS tests:
 ```bash
 xcodebuild test \
-  -project VoiceNotes.xcodeproj \
-  -scheme VoiceNotes \
+  -project tcord.xcodeproj \
+  -scheme tcord \
   -destination 'platform=iOS Simulator,name=iPhone 15'
 ```
 

@@ -19,7 +19,7 @@ struct AuthView: View {
                 .font(.system(size: 80))
                 .foregroundColor(.blue)
 
-            Text("Voice Notes")
+            Text("tcord")
                 .font(.largeTitle)
                 .bold()
 

@@ -1,11 +1,11 @@
-// ABOUTME: Main entry point for the iOS Voice Notes app.
+// ABOUTME: Main entry point for the iOS tcord app.
 // ABOUTME: Configures Firebase and activates WatchConnectivity session.
 
 import SwiftUI
 import FirebaseCore
 
 @main
-struct VoiceNotesApp: App {
+struct tcordApp: App {
 
     init() {
         // Configure Firebase

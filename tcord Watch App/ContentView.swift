@@ -1,4 +1,4 @@
-// ABOUTME: Main view for the watchOS Voice Notes app.
+// ABOUTME: Main view for the watchOS tcord app.
 // ABOUTME: Provides a single-button interface for recording voice memos.
 
 import SwiftUI

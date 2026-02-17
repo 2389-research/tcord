@@ -1,4 +1,4 @@
-// ABOUTME: Firebase Storage security rules for Voice Notes app.
+// ABOUTME: Firebase Storage security rules for tcord app.
 // ABOUTME: Ensures users can only access their own audio files.
 
 rules_version = '2';

@@ -1,10 +1,10 @@
-// ABOUTME: Unit tests for the VoiceNotes iOS application.
-// ABOUTME: Contains test cases for core app functionality.
+// ABOUTME: Unit tests for the tcord watchOS application.
+// ABOUTME: Contains test cases for watch-specific functionality.
 
 import XCTest
-@testable import VoiceNotes
+@testable import tcord_Watch_App
 
-final class VoiceNotesTests: XCTestCase {
+final class tcordWatchAppTests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.

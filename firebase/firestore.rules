@@ -1,4 +1,4 @@
-// ABOUTME: Firestore security rules for Voice Notes app.
+// ABOUTME: Firestore security rules for tcord app.
 // ABOUTME: Ensures users can only access their own data.
 
 rules_version = '2';

@@ -30,7 +30,7 @@ struct NotesListView: View {
                     ProgressView("Loading notes...")
                 } else if notes.isEmpty && uploadQueue.queue.isEmpty {
                     ContentUnavailableView(
-                        "No Voice Notes",
+                        "No Notes",
                         systemImage: "waveform",
                         description: Text("Record a note on your Apple Watch to get started.")
                     )
@@ -38,7 +38,7 @@ struct NotesListView: View {
                     notesList
                 }
             }
-            .navigationTitle("Voice Notes")
+            .navigationTitle("tcord")
             .toolbar {
                 if uploadQueue.pendingCount > 0 {
                     ToolbarItem(placement: .topBarTrailing) {
