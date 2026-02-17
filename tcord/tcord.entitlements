@@ -6,7 +6,5 @@
 	<array>
 		<string>Default</string>
 	</array>
-	<key>com.apple.developer.watchkit</key>
-	<true/>
 </dict>
 </plist>

@@ -2,7 +2,10 @@
 // ABOUTME: Uses Apple Speech framework to transcribe audio files immediately after recording.
 
 import Foundation
+
+#if canImport(Speech)
 import Speech
+#endif
 
 /// Errors that can occur during transcription
 enum TranscriptionError: Error, LocalizedError {
@@ -25,9 +28,16 @@ enum TranscriptionError: Error, LocalizedError {
     }
 }
 
+/// Result of a successful transcription
+struct TranscriptionResult {
+    let text: String
+    let language: String
+}
+
 /// Service for transcribing audio files using Apple Speech framework
 final class TranscriptionService {
 
+#if canImport(Speech)
     private var recognizer: SFSpeechRecognizer?
 
     init() {
@@ -90,10 +100,12 @@ final class TranscriptionService {
             }
         }
     }
-}
+#else
+    init() {}
 
-/// Result of a successful transcription
-struct TranscriptionResult {
-    let text: String
-    let language: String
+    /// Speech framework unavailable - transcription will be handled by the iPhone
+    func transcribe(audioURL: URL) async throws -> TranscriptionResult {
+        throw TranscriptionError.recognizerUnavailable
+    }
+#endif
 }
