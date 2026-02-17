@@ -25,6 +25,8 @@
         <key>UIApplicationSupportsMultipleScenes</key>
         <true/>
     </dict>
+    <key>CFBundleIconName</key>
+    <string>AppIcon</string>
     <key>UILaunchScreen</key>
     <dict/>
     <key>UIBackgroundModes</key>
