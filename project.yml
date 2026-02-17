@@ -1,6 +1,6 @@
 name: tcord
 options:
-  bundleIdPrefix: com.tcord
+  bundleIdPrefix: ai.2389.tcord
   deploymentTarget:
     iOS: "17.0"
     watchOS: "10.0"
@@ -27,7 +27,7 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: tcord/Info.plist
-        PRODUCT_BUNDLE_IDENTIFIER: com.tcord.app
+        PRODUCT_BUNDLE_IDENTIFIER: ai.2389.tcord
         CODE_SIGN_ENTITLEMENTS: tcord/tcord.entitlements
     entitlements:
       path: tcord/tcord.entitlements
@@ -62,8 +62,8 @@ targets:
     settings:
       base:
         INFOPLIST_FILE: "tcord Watch App/Info.plist"
-        PRODUCT_BUNDLE_IDENTIFIER: com.tcord.app.watchkitapp
-        WK_COMPANION_APP_BUNDLE_IDENTIFIER: com.tcord.app
+        PRODUCT_BUNDLE_IDENTIFIER: ai.2389.tcord.watchkitapp
+        WK_COMPANION_APP_BUNDLE_IDENTIFIER: ai.2389.tcord
     dependencies: []
 
   "tcord Watch AppTests":

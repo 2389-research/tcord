@@ -26,7 +26,7 @@
     <key>WKApplication</key>
     <true/>
     <key>WKCompanionAppBundleIdentifier</key>
-    <string>com.tcord.app</string>
+    <string>ai.2389.tcord</string>
     <key>NSMicrophoneUsageDescription</key>
     <string>tcord needs microphone access to record voice memos.</string>
     <key>NSSpeechRecognitionUsageDescription</key>
